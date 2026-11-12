@@ -1,10 +1,12 @@
 import pathlib
+import sys
 
 import pytest
 
 import robotics_model as rm
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 
 @pytest.fixture

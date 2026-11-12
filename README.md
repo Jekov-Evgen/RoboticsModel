@@ -265,7 +265,7 @@ docs/               документация
 - [x] Интерфейс Gymnasium для обучения с подкреплением — [docs/GYM.md](docs/GYM.md)
 - [x] Прямая и обратная кинематика, траектории minimum-jerk и прямые в пространстве — [docs/PLANNING.md](docs/PLANNING.md)
 - [ ] Гравитационное и скоростное feedforward в регуляторах; планирование с обходом препятствий
-- [ ] Мост в ROS 2
+- [x] Мост ROS 2 (узел `rclpy`, `/joint_states`, `/tf`, датчики, `/cmd_vel`) — [docs/ROS2.md](docs/ROS2.md); проверен на заглушках, **на живом ROS 2 ещё не запускался**
 - [x] Сравнение с MuJoCo на одинаковых сценах — [docs/VALIDATION.md](docs/VALIDATION.md)
 - [ ] Рендер и редактор для Linux/Windows
 - [ ] Sleeping, трение и демпфирование в суставах
@@ -279,6 +279,7 @@ docs/               документация
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | регуляторы, Control Lab, настройка |
 | [docs/SENSORS.md](docs/SENSORS.md) | датчики, шум, задержка |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: установка, дескрипторы, регуляторы, датчики |
+| [docs/ROS2.md](docs/ROS2.md) | мост ROS 2: темы, соглашения, статус проверки |
 | [docs/PLANNING.md](docs/PLANNING.md) | кинематика, ОЗК, траектории: методы, ограничения, измерения |
 | [docs/GYM.md](docs/GYM.md) | окружение Gymnasium `ArmReach-v0`, пример обучения |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | сверка с аналитикой и MuJoCo: методика и результаты |

@@ -265,7 +265,7 @@ This is an **educational rigid-body simulator**, not a replacement for an indust
 - [x] Gymnasium interface for reinforcement learning — [docs/GYM.md](docs/GYM.md)
 - [x] Forward and inverse kinematics, minimum-jerk trajectories and straight lines in space — [docs/PLANNING.md](docs/PLANNING.md)
 - [ ] Gravity and velocity feedforward in the controllers; planning around obstacles
-- [ ] ROS 2 bridge
+- [x] ROS 2 bridge (`rclpy` node, `/joint_states`, `/tf`, sensors, `/cmd_vel`) — [docs/ROS2.md](docs/ROS2.md); tested against stand-ins, **not yet run on a live ROS 2**
 - [x] Comparison with MuJoCo on identical scenes — [docs/VALIDATION.md](docs/VALIDATION.md)
 - [ ] Renderer and editor for Linux/Windows
 - [ ] Sleeping, joint friction and damping
@@ -281,6 +281,7 @@ All documentation is currently in Russian.
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | controllers, Control Lab, tuning |
 | [docs/SENSORS.md](docs/SENSORS.md) | sensors, noise, latency |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: install, handles, controllers, sensors |
+| [docs/ROS2.md](docs/ROS2.md) | ROS 2 bridge: topics, conventions, verification status |
 | [docs/PLANNING.md](docs/PLANNING.md) | kinematics, IK, trajectories: methods, limits, measurements |
 | [docs/GYM.md](docs/GYM.md) | Gymnasium environment `ArmReach-v0`, training example |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | checks against analytic solutions and MuJoCo |

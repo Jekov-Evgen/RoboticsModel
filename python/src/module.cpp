@@ -519,6 +519,18 @@ PYBIND11_MODULE(_core, m) {
             for (char h : r.get().state.rayHits) { hits.push_back(h != 0); }
             return hits;
         })
+        .def_property_readonly("fov", [](const SensorRef& r) { return r.get().fov; }, "Lidar: horizontal field of view; camera: vertical (rad).")
+        .def_property_readonly("beams", [](const SensorRef& r) { return r.get().beams; })
+        .def_property_readonly("min_range", [](const SensorRef& r) { return r.get().minRange; })
+        .def_property_readonly("max_range", [](const SensorRef& r) { return r.get().maxRange; })
+        .def_property_readonly("lidar_angles", [](const SensorRef& r) {
+            std::vector<double> angles;
+            for (int k = 0; k < r.get().beams; ++k) {
+                Vec3 d = lidarBeamDirection(r.get(), k);
+                angles.push_back(std::atan2(-d.z, d.x));
+            }
+            return toArray(angles);
+        }, "Lidar: angle of every beam in the sensor frame, positive towards the left (-Z).")
         .def_property("rate", [](const SensorRef& r) { return r.get().rate; }, [](const SensorRef& r, double v) {
             Sensor s = r.get(); s.rate = v; validateSensor(s, r.world->bodies.size()); r.get().rate = v;
         })
