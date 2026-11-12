@@ -252,7 +252,7 @@ This is an **educational rigid-body simulator**, not a replacement for an indust
 ## Roadmap
 
 - [x] Python bindings (`pip install .`, numpy, headless mode) — [docs/PYTHON.md](docs/PYTHON.md)
-- [ ] Gym-style interface for reinforcement learning
+- [x] Gymnasium interface for reinforcement learning — [docs/GYM.md](docs/GYM.md)
 - [ ] Gravity and velocity feedforward in the controllers, inverse kinematics and trajectory planning
 - [ ] ROS 2 bridge
 - [x] Comparison with MuJoCo on identical scenes — [docs/VALIDATION.md](docs/VALIDATION.md)
@@ -270,6 +270,7 @@ All documentation is currently in Russian.
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | controllers, Control Lab, tuning |
 | [docs/SENSORS.md](docs/SENSORS.md) | sensors, noise, latency |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: install, handles, controllers, sensors |
+| [docs/GYM.md](docs/GYM.md) | Gymnasium environment `ArmReach-v0`, training example |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | checks against analytic solutions and MuJoCo |
 | [docs/IMPORT.md](docs/IMPORT.md) | URDF, STL, OBJ import |
 

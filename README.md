@@ -252,7 +252,7 @@ docs/               документация
 ## Дорожная карта
 
 - [x] Python-привязки (`pip install .`, numpy, режим без окна) — [docs/PYTHON.md](docs/PYTHON.md)
-- [ ] Интерфейс в стиле Gym для обучения с подкреплением
+- [x] Интерфейс Gymnasium для обучения с подкреплением — [docs/GYM.md](docs/GYM.md)
 - [ ] Гравитационное и скоростное feedforward в регуляторах, обратная кинематика и планирование траекторий
 - [ ] Мост в ROS 2
 - [x] Сравнение с MuJoCo на одинаковых сценах — [docs/VALIDATION.md](docs/VALIDATION.md)
@@ -268,6 +268,7 @@ docs/               документация
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | регуляторы, Control Lab, настройка |
 | [docs/SENSORS.md](docs/SENSORS.md) | датчики, шум, задержка |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: установка, дескрипторы, регуляторы, датчики |
+| [docs/GYM.md](docs/GYM.md) | окружение Gymnasium `ArmReach-v0`, пример обучения |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | сверка с аналитикой и MuJoCo: методика и результаты |
 | [docs/IMPORT.md](docs/IMPORT.md) | импорт URDF, STL, OBJ |
 
