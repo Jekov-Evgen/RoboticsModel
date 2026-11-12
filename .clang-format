@@ -1,0 +1,58 @@
+# Project style: LLVM base, 4-space indent, 110 columns, one statement per line.
+# Run: xcrun clang-format -i $(find include src tests tools -name '*.hpp' -o -name '*.cpp' -o -name '*.h' -o -name '*.mm')
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++20
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 110
+AccessModifierOffset: -4
+PointerAlignment: Left
+ReferenceAlignment: Left
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+AllowShortEnumsOnASingleLine: true
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeTernaryOperators: true
+BinPackArguments: true
+BinPackParameters: true
+FixNamespaceComments: true
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+InsertBraces: true
+SeparateDefinitionBlocks: Always
+SpaceAfterTemplateKeyword: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+---
+Language: ObjC
+InsertBraces: true
+BasedOnStyle: LLVM
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 110
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+BreakBeforeBinaryOperators: NonAssignment
+FixNamespaceComments: true
+IncludeBlocks: Preserve
+SortIncludes: Never
+SeparateDefinitionBlocks: Always
+KeepEmptyLinesAtTheStartOfBlocks: false
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+ObjCBreakBeforeNestedBlockParam: true
+MaxEmptyLinesToKeep: 1
+...
