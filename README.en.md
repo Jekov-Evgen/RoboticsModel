@@ -177,7 +177,7 @@ Details and formulas: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (Russian).
 
 - **177 automated tests** by area: math, contacts, chains, hulls, CCD, joints and limits, controllers, sensors, URDF, file format, recording. All pass, including under **UndefinedBehaviorSanitizer** (`make test-ubsan`).
 - **Editor self-check** (`robotics_editor --smoke-test`) drives the real window: part creation, undo/redo, move, Control Lab, reset, saving, sensors, gizmos, timeline, plots, library and GPU rendering.
-- **Checks against theory:** hull mass properties against closed-form formulas, GJK against brute force on random polytopes, EPA against SAT on 400 box pairs, lidar against an analytic wall, PD overshoot against the formula.
+- **Checks against theory and MuJoCo:** hull mass properties against closed-form formulas, GJK against brute force on random polytopes, EPA against SAT on 400 box pairs, lidar against an analytic wall, PD overshoot against the formula. Six dynamic scenarios (pendulums, a PD joint, a manipulator, friction, a tumbling body) are checked against analytic solutions and **MuJoCo**: [docs/VALIDATION.md](docs/VALIDATION.md) (Russian).
 - **Determinism:** two independent runs of the experiment series produce byte-identical CSVs.
 - **Constraint consistency:** joint anchor drift stayed below 0.02 mm in every experiment.
 
@@ -255,7 +255,7 @@ This is an **educational rigid-body simulator**, not a replacement for an indust
 - [ ] Gym-style interface for reinforcement learning
 - [ ] Gravity and velocity feedforward in the controllers, inverse kinematics and trajectory planning
 - [ ] ROS 2 bridge
-- [ ] Comparison with MuJoCo on identical scenes
+- [x] Comparison with MuJoCo on identical scenes — [docs/VALIDATION.md](docs/VALIDATION.md)
 - [ ] Renderer and editor for Linux/Windows
 - [ ] Sleeping, joint friction and damping
 
@@ -270,6 +270,7 @@ All documentation is currently in Russian.
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | controllers, Control Lab, tuning |
 | [docs/SENSORS.md](docs/SENSORS.md) | sensors, noise, latency |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: install, handles, controllers, sensors |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | checks against analytic solutions and MuJoCo |
 | [docs/IMPORT.md](docs/IMPORT.md) | URDF, STL, OBJ import |
 
 ## Build and test
