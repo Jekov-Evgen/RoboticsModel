@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(ROBOTICS_BUILD_TESTS "Build the unit tests" ON)
 option(ROBOTICS_BUILD_EDITOR "Build the macOS editor (Apple only)" ON)
+option(ROBOTICS_BUILD_PYTHON "Build the Python bindings (needs Python and pybind11)" OFF)
 option(ROBOTICS_ENABLE_SANITIZERS "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 option(ROBOTICS_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
@@ -46,6 +47,17 @@ target_compile_features(robotics PUBLIC cxx_std_20)
 # PIC lets the static library be linked into a shared module (e.g. future Python bindings).
 set_target_properties(robotics PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(robotics PRIVATE robotics::warnings PUBLIC robotics::sanitizers)
+
+# ---- Python bindings (pip install .  or  -DROBOTICS_BUILD_PYTHON=ON) ----------------------------------
+
+if(ROBOTICS_BUILD_PYTHON)
+  find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
+  find_package(pybind11 CONFIG REQUIRED)
+  pybind11_add_module(robotics_py MODULE python/src/module.cpp)
+  set_target_properties(robotics_py PROPERTIES OUTPUT_NAME _core)
+  target_link_libraries(robotics_py PRIVATE robotics)
+  install(TARGETS robotics_py LIBRARY DESTINATION robotics_model)
+endif()
 
 # ---- Command-line runner ---------------------------------------------------------------------------
 

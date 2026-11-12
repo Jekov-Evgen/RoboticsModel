@@ -134,6 +134,21 @@ int main() {
 
 Собрать и запустить (bash/zsh): `clang++ -std=c++20 -Iinclude src/{physics,control,io,scenes,sensors,editing,replay}/*.cpp main.cpp`.
 
+## Python API
+
+То же ядро — из Python, без окна. Дескрипторы тел и суставов, `numpy`-массивы, строковые перечисления:
+
+```python
+import robotics_model as rm
+
+world = rm.load_scene("examples/manipulator_3dof.robot")
+world.set_joint_targets([0.5, 0.3, 0.8])      # цели PID по всем суставам, рад
+world.run(3.0)                                # секунды симуляции
+print(world.joint_angles(), world.body("tool").position)
+```
+
+Установка: `pip install .` (нужны компилятор C++20 и CMake). Подробности — в [docs/PYTHON.md](docs/PYTHON.md).
+
 ## Физика внутри
 
 ```mermaid
@@ -236,7 +251,7 @@ docs/               документация
 
 ## Дорожная карта
 
-- [ ] Python-привязки (`sim.step()`, датчики, команды моторам, режим без окна)
+- [x] Python-привязки (`pip install .`, numpy, режим без окна) — [docs/PYTHON.md](docs/PYTHON.md)
 - [ ] Интерфейс в стиле Gym для обучения с подкреплением
 - [ ] Гравитационное и скоростное feedforward в регуляторах, обратная кинематика и планирование траекторий
 - [ ] Мост в ROS 2
@@ -252,6 +267,7 @@ docs/               документация
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | модули, математическая модель, шаг физики, форматы `.robot` |
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | регуляторы, Control Lab, настройка |
 | [docs/SENSORS.md](docs/SENSORS.md) | датчики, шум, задержка |
+| [docs/PYTHON.md](docs/PYTHON.md) | Python API: установка, дескрипторы, регуляторы, датчики |
 | [docs/IMPORT.md](docs/IMPORT.md) | импорт URDF, STL, OBJ |
 
 ## Сборка и тесты

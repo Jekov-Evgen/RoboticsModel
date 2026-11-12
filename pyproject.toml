@@ -1,0 +1,32 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "robotics-model"
+version = "0.4.0"
+description = "3D robot simulator with its own C++20 physics engine: joints, PID control, sensors, URDF import"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+dependencies = ["numpy>=1.23"]
+classifiers = [
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering",
+  "License :: OSI Approved :: MIT License",
+]
+
+[project.optional-dependencies]
+gym = ["gymnasium>=0.29"]
+test = ["pytest>=7"]
+
+[tool.scikit-build]
+cmake.source-dir = "."
+cmake.build-type = "Release"
+build.targets = ["robotics_py"]
+wheel.packages = ["python/robotics_model"]
+cmake.define = { ROBOTICS_BUILD_PYTHON = "ON", ROBOTICS_BUILD_TESTS = "OFF", ROBOTICS_BUILD_EDITOR = "OFF" }
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]

@@ -134,6 +134,21 @@ int main() {
 
 Build and run (bash/zsh): `clang++ -std=c++20 -Iinclude src/{physics,control,io,scenes,sensors,editing,replay}/*.cpp main.cpp`.
 
+## Python API
+
+The same core from Python, headless. Handles for bodies and joints, `numpy` arrays, string enums:
+
+```python
+import robotics_model as rm
+
+world = rm.load_scene("examples/manipulator_3dof.robot")
+world.set_joint_targets([0.5, 0.3, 0.8])      # PID setpoints for every joint, rad
+world.run(3.0)                                # simulated seconds
+print(world.joint_angles(), world.body("tool").position)
+```
+
+Install with `pip install .` (needs a C++20 compiler and CMake). Details: [docs/PYTHON.md](docs/PYTHON.md) (Russian).
+
 ## Physics inside
 
 ```mermaid
@@ -236,7 +251,7 @@ This is an **educational rigid-body simulator**, not a replacement for an indust
 
 ## Roadmap
 
-- [ ] Python bindings (`sim.step()`, sensors, motor commands, headless mode)
+- [x] Python bindings (`pip install .`, numpy, headless mode) — [docs/PYTHON.md](docs/PYTHON.md)
 - [ ] Gym-style interface for reinforcement learning
 - [ ] Gravity and velocity feedforward in the controllers, inverse kinematics and trajectory planning
 - [ ] ROS 2 bridge
@@ -254,6 +269,7 @@ All documentation is currently in Russian.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | modules, mathematical model, physics step, `.robot` formats |
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | controllers, Control Lab, tuning |
 | [docs/SENSORS.md](docs/SENSORS.md) | sensors, noise, latency |
+| [docs/PYTHON.md](docs/PYTHON.md) | Python API: install, handles, controllers, sensors |
 | [docs/IMPORT.md](docs/IMPORT.md) | URDF, STL, OBJ import |
 
 ## Build and test
