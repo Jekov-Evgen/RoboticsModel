@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!-- Parallel gripper: a palm and two prismatic fingers with travel limits. Import with "Fix base".
+     The right finger's <mimic> and the <dynamics> damping are reported as unsupported. -->
+<robot name="gripper">
+  <link name="palm">
+    <inertial><mass value="0.5"/></inertial>
+    <collision>
+      <origin xyz="0 0 0.03"/>
+      <geometry><box size="0.2 0.06 0.06"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="left_finger_joint" type="prismatic">
+    <parent link="palm"/>
+    <child link="left_finger"/>
+    <origin xyz="0.08 0 0.06"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="0" upper="0.05" effort="20" velocity="0.2"/>
+    <dynamics damping="0.5"/>
+  </joint>
+
+  <link name="left_finger">
+    <inertial><mass value="0.05"/></inertial>
+    <collision>
+      <origin xyz="0 0 0.05"/>
+      <geometry><box size="0.02 0.04 0.1"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="right_finger_joint" type="prismatic">
+    <parent link="palm"/>
+    <child link="right_finger"/>
+    <origin xyz="-0.08 0 0.06"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0" upper="0.05" effort="20" velocity="0.2"/>
+    <mimic joint="left_finger_joint" multiplier="1"/>
+  </joint>
+
+  <link name="right_finger">
+    <inertial><mass value="0.05"/></inertial>
+    <collision>
+      <origin xyz="0 0 0.05"/>
+      <geometry><box size="0.02 0.04 0.1"/></geometry>
+    </collision>
+  </link>
+
+  <transmission name="left_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+  </transmission>
+</robot>

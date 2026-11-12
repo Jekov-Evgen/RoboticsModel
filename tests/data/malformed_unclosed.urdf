@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- Malformed on purpose (tests/test_urdf.cpp): <collision> is closed by </visual> on line 9. -->
+<robot name="broken">
+  <link name="base_link">
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

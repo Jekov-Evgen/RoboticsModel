@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- Minimal ROS-style package so that package://demo_meshes/... resolves to this folder. -->
+<package format="2">
+  <name>demo_meshes</name>
+  <version>1.0.0</version>
+  <description>Tiny STL/OBJ meshes for the Robotics Model URDF importer demo.</description>
+  <maintainer email="nobody@example.com">Robotics Model</maintainer>
+  <license>MIT</license>
+</package>
