@@ -33,11 +33,12 @@ endif()
 
 # ---- Core library: headless, no UI dependencies ---------------------------------------------------
 # Module directories: physics (bodies, collision, solver, actuators), control, io, scenes, sensors,
-# editing (assembly edits, gizmo math, part library), replay (recording, plot channels).
+# editing (assembly edits, gizmo math, part library), replay (recording, plot channels), kinematics (FK, IK,
+# trajectory generation).
 
 file(GLOB ROBOTICS_CORE_SOURCES CONFIGURE_DEPENDS
   src/physics/*.cpp src/control/*.cpp src/io/*.cpp src/scenes/*.cpp src/sensors/*.cpp
-  src/editing/*.cpp src/replay/*.cpp)
+  src/editing/*.cpp src/replay/*.cpp src/kinematics/*.cpp)
 add_library(robotics ${ROBOTICS_CORE_SOURCES})
 add_library(robotics::robotics ALIAS robotics)
 target_include_directories(robotics

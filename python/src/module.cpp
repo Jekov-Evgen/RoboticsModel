@@ -14,6 +14,8 @@
 #include "robotics/demo_scenes.hpp"
 #include "robotics/io/robot_format.hpp"
 #include "robotics/io/urdf.hpp"
+#include "robotics/kinematics/kinematics.hpp"
+#include "robotics/kinematics/trajectory.hpp"
 #include "robotics/sensors/raycast.hpp"
 #include "robotics/sensors/sensor_system.hpp"
 #include "robotics/world.hpp"
@@ -209,6 +211,13 @@ int bodyIndex(const py::object& value, const World& w) {
             throw py::value_error("body belongs to a different World");
         }
         index = ref.index;
+    } else if (py::isinstance<py::str>(value)) {
+        std::string name = value.cast<std::string>();
+        auto found = std::find_if(w.bodies.begin(), w.bodies.end(), [&](const Body& b) { return b.name == name; });
+        if (found == w.bodies.end()) {
+            throw py::key_error("no body named '" + name + "'");
+        }
+        index = static_cast<int>(found - w.bodies.begin());
     } else {
         index = value.cast<int>();
     }
@@ -280,6 +289,44 @@ struct ContactInfo {
     Vec3 tangentImpulse;
     bool speculative;
 };
+
+struct ChainRef {
+    py::object owner;
+    World* world;
+    Chain chain;
+};
+
+std::vector<double> toVector(const py::object& value, const char* what) {
+    Input a = Input::ensure(value);
+    if (!a || a.ndim() != 1) {
+        throw py::value_error(std::string(what) + " must be a 1-D sequence of numbers");
+    }
+    return std::vector<double>(a.data(), a.data() + a.shape(0));
+}
+
+Array matrixOf(const std::vector<std::vector<double>>& rows, std::size_t columns) {
+    Array a({static_cast<py::ssize_t>(rows.size()), static_cast<py::ssize_t>(columns)});
+    auto r = a.mutable_unchecked<2>();
+    for (std::size_t i = 0; i < rows.size(); ++i) {
+        for (std::size_t k = 0; k < columns; ++k) {
+            r(static_cast<py::ssize_t>(i), static_cast<py::ssize_t>(k)) = rows[i][k];
+        }
+    }
+    return a;
+}
+
+JointLimits toLimits(const py::object& velocity, const py::object& acceleration, std::size_t n) {
+    JointLimits limits;
+    auto expand = [&](const py::object& value, const char* what) {
+        if (py::isinstance<py::float_>(value) || py::isinstance<py::int_>(value)) {
+            return std::vector<double>(n, value.cast<double>());
+        }
+        return toVector(value, what);
+    };
+    limits.maxVelocity = expand(velocity, "max_velocity");
+    limits.maxAcceleration = expand(acceleration, "max_acceleration");
+    return limits;
+}
 
 struct UrdfRobot {
     World world;
@@ -485,6 +532,96 @@ PYBIND11_MODULE(_core, m) {
                       "Encoder / joint velocity sensors: the joint's feedback controller reads this sensor instead of the ideal value.")
         .def("__repr__", [](const SensorRef& r) { return "<Sensor " + std::to_string(r.index) + " '" + r.get().name + "' " + std::string(sensorTypeName(r.get().type)) + ">"; });
 
+    // ---------- kinematics ----------
+    py::class_<IkResult>(m, "IkResult", "Result of Chain.solve_ik().")
+        .def_property_readonly("q", [](const IkResult& r) { return toArray(r.q); }, "Joint coordinates found (best effort even if not converged).")
+        .def_readonly("converged", &IkResult::converged)
+        .def_readonly("position_error", &IkResult::positionError, "m")
+        .def_readonly("orientation_error", &IkResult::orientationError, "rad")
+        .def_readonly("iterations", &IkResult::iterations)
+        .def("__repr__", [](const IkResult& r) {
+            return std::string("<IkResult converged=") + (r.converged ? "True" : "False") + " position_error=" + std::to_string(r.positionError) +
+                   " iterations=" + std::to_string(r.iterations) + ">";
+        });
+
+    py::class_<Trajectory>(m, "Trajectory", "A joint-space trajectory sampled at a fixed period.")
+        .def_readonly("dt", &Trajectory::dt)
+        .def_property_readonly("duration", &Trajectory::duration)
+        .def("__len__", &Trajectory::size)
+        .def_property_readonly("times", [](const Trajectory& t) {
+            std::vector<double> times;
+            for (std::size_t i = 0; i < t.size(); ++i) { times.push_back(t.dt * static_cast<double>(i)); }
+            return toArray(times);
+        })
+        .def_property_readonly("positions", [](const Trajectory& t) { return matrixOf(t.position, t.position.empty() ? 0 : t.position[0].size()); }, "(N, n) coordinates.")
+        .def_property_readonly("velocities", [](const Trajectory& t) { return matrixOf(t.velocity, t.velocity.empty() ? 0 : t.velocity[0].size()); })
+        .def_property_readonly("accelerations", [](const Trajectory& t) { return matrixOf(t.acceleration, t.acceleration.empty() ? 0 : t.acceleration[0].size()); })
+        .def("sample", [](const Trajectory& t, double time) {
+            auto s = t.sample(time);
+            return py::make_tuple(toArray(s.position), toArray(s.velocity), toArray(s.acceleration));
+        }, py::arg("time"), "(position, velocity, acceleration) at `time` (clamped to the trajectory).");
+
+    py::class_<ChainRef>(m, "Chain", "A serial chain of joints from a base body to a tip body (forward/inverse kinematics).")
+        .def_property_readonly("joints", [](const ChainRef& c) { return c.chain.joints; }, "World joint indices, root to tip (fixed joints included).")
+        .def_property_readonly("actuated", [](const ChainRef& c) { return c.chain.actuated; }, "World joint indices of the joints with a coordinate.")
+        .def_property_readonly("dofs", [](const ChainRef& c) { return c.chain.dofs(); })
+        .def_property_readonly("root", [](const ChainRef& c) { return makeBody(c.owner, c.chain.root); })
+        .def_property_readonly("tip", [](const ChainRef& c) { return makeBody(c.owner, c.chain.tip); })
+        .def("coordinates", [](const ChainRef& c) { return toArray(chainCoordinates(*c.world, c.chain)); }, "Current joint coordinates (rad or m).")
+        .def("forward", [](const ChainRef& c, const py::object& q) {
+            Pose p = forwardKinematics(*c.world, c.chain, toVector(q, "q"));
+            return py::make_tuple(toArray(p.position), toArray(p.orientation));
+        }, py::arg("q"), "Pose (position, quaternion w x y z) of the controlled point for coordinates q.")
+        .def("jacobian", [](const ChainRef& c, const py::object& q) {
+            auto columns = jacobian(*c.world, c.chain, toVector(q, "q"));
+            Array a({static_cast<py::ssize_t>(6), static_cast<py::ssize_t>(columns.size())});
+            auto r = a.mutable_unchecked<2>();
+            for (std::size_t k = 0; k < columns.size(); ++k) {
+                for (std::size_t row = 0; row < 6; ++row) { r(static_cast<py::ssize_t>(row), static_cast<py::ssize_t>(k)) = columns[k][row]; }
+            }
+            return a;
+        }, py::arg("q"), "(6, n) geometric Jacobian: rows are the linear velocity of the controlled point and the angular velocity of the tip.")
+        .def("solve_ik", [](const ChainRef& c, const py::object& position, const py::object& orientation, const py::object& seed, int maxIterations,
+                            double positionTolerance, double orientationTolerance, double damping, double maxStep, bool respectLimits) {
+            IkOptions o;
+            o.maxIterations = maxIterations;
+            o.positionTolerance = positionTolerance;
+            o.orientationTolerance = orientationTolerance;
+            o.damping = damping;
+            o.maxStep = maxStep;
+            o.respectLimits = respectLimits;
+            std::optional<Quat> target;
+            if (!orientation.is_none()) { target = toQuat(orientation, "target_orientation"); }
+            std::vector<double> start = seed.is_none() ? chainCoordinates(*c.world, c.chain) : toVector(seed, "seed");
+            return solveIk(*c.world, c.chain, toVec3(position, "target_position"), target, start, o);
+        }, py::arg("target_position"), py::arg("target_orientation") = py::none(), py::arg("seed") = py::none(), py::arg("max_iterations") = 200,
+           py::arg("position_tolerance") = 1e-4, py::arg("orientation_tolerance") = 1e-3, py::arg("damping") = 0.05, py::arg("max_step") = 0.3,
+           py::arg("respect_limits") = true,
+           "Damped-least-squares IK from `seed` (default: the current coordinates). Check .converged on the result.")
+        .def("plan_line", [](const ChainRef& c, const py::object& qStart, const py::object& target, const py::object& maxVelocity, const py::object& maxAcceleration,
+                             int pathSamples, double dt) -> py::object {
+            auto trajectory = planCartesianLine(*c.world, c.chain, toVector(qStart, "q_start"), toVec3(target, "target"),
+                                                toLimits(maxVelocity, maxAcceleration, c.chain.dofs()), pathSamples, dt);
+            if (!trajectory) { return py::none(); }
+            return py::cast(std::move(*trajectory));
+        }, py::arg("q_start"), py::arg("target"), py::arg("max_velocity"), py::arg("max_acceleration"), py::arg("path_samples") = 100, py::arg("dt") = 0.002,
+           "Straight line in space for the controlled point; returns a Trajectory, or None if IK fails somewhere along the line.")
+        .def("__repr__", [](const ChainRef& c) { return "<Chain " + std::to_string(c.chain.dofs()) + " dof, root " + std::to_string(c.chain.root) + " -> tip " + std::to_string(c.chain.tip) + ">"; });
+
+    m.def("min_jerk_duration", [](const py::object& start, const py::object& goal, const py::object& maxVelocity, const py::object& maxAcceleration) {
+        auto a = toVector(start, "start");
+        return minJerkDuration(a, toVector(goal, "goal"), toLimits(maxVelocity, maxAcceleration, a.size()));
+    }, py::arg("start"), py::arg("goal"), py::arg("max_velocity"), py::arg("max_acceleration"), "Shortest rest-to-rest minimum-jerk duration under the limits.");
+    m.def("plan_point_to_point", [](const py::object& start, const py::object& goal, const py::object& maxVelocity, const py::object& maxAcceleration, double dt) {
+        auto a = toVector(start, "start");
+        return planPointToPoint(a, toVector(goal, "goal"), toLimits(maxVelocity, maxAcceleration, a.size()), dt);
+    }, py::arg("start"), py::arg("goal"), py::arg("max_velocity"), py::arg("max_acceleration"), py::arg("dt") = 0.002,
+          "Rest-to-rest minimum-jerk move timed by the velocity and acceleration limits (scalars or one value per coordinate).");
+    m.def("plan_waypoints", [](const std::vector<std::vector<double>>& waypoints, const py::object& maxVelocity, const py::object& maxAcceleration, double dt) {
+        if (waypoints.empty()) { throw py::value_error("need at least two waypoints"); }
+        return planWaypoints(waypoints, toLimits(maxVelocity, maxAcceleration, waypoints[0].size()), dt);
+    }, py::arg("waypoints"), py::arg("max_velocity"), py::arg("max_acceleration"), py::arg("dt") = 0.002, "Visits the waypoints in order, stopping at each.");
+
     // ---------- World ----------
     py::class_<World>(m, "World", "Bodies, joints, sensors and the fixed-step physics pipeline (240 Hz by default).")
         .def(py::init<>())
@@ -570,6 +707,11 @@ PYBIND11_MODULE(_core, m) {
             return makeJoint(self, index);
         }, py::arg("parent"), py::arg("child"), py::arg("type") = py::str("hinge"), py::arg("anchor") = py::make_tuple(0.0, 0.0, 0.0), py::arg("axis") = py::make_tuple(0.0, 0.0, 1.0),
            "Connects two bodies at a world-space anchor. The current pose becomes the joint's zero.")
+        .def("make_chain", [](py::object self, const py::object& tip, const py::object& tipPoint) {
+            World& w = worldOf(self);
+            return ChainRef{self, &w, makeChain(w, bodyIndex(tip, w), tipPoint.is_none() ? Vec3{} : toVec3(tipPoint, "tip_point"))};
+        }, py::arg("tip"), py::arg("tip_point") = py::none(),
+           "The serial chain from the base to `tip` (a body or its index); `tip_point` is the controlled point in the tip body's frame.")
         .def("add_sensor", [](py::object self, const py::object& typeArg, const py::object& target, const std::string& name, const py::object& rate, const py::object& latency,
                               const py::object& dropout, const py::object& seed, const py::object& noiseStddev, const py::object& noiseBias,
                               const py::object& noiseBiasWalk, const py::object& noiseResolution, const py::object& noise2Stddev,

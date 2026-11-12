@@ -9,7 +9,7 @@
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B&logoColor=white)](#сборка-и-тесты)
 [![Platform](https://img.shields.io/badge/editor-macOS%20(Metal)-000000?logo=apple&logoColor=white)](#быстрый-старт)
 [![Core](https://img.shields.io/badge/core%20%2B%20CLI-portable%20C%2B%2B20-5C6BC0)](#архитектура)
-[![Tests](https://img.shields.io/badge/tests-177%20passing-2EA44F)](#проверено-а-не-вроде-работает)
+[![Tests](https://img.shields.io/badge/tests-187%20passing-2EA44F)](#проверено-а-не-вроде-работает)
 [![Dependencies](https://img.shields.io/badge/third--party%20deps-0-2EA44F)](#сборка-и-тесты)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
@@ -50,7 +50,7 @@ Robotics Model — учебная среда конструирования и �
 git clone https://github.com/Jekov-Evgen/RoboticsModel.git
 cd RoboticsModel
 make            # ядро, консоль, тесты и редактор
-make test       # 177 автоматических тестов
+make test       # 187 автоматических тестов
 open build/RoboticsModel.app
 ```
 
@@ -147,7 +147,16 @@ world.run(3.0)                                # секунды симуляци�
 print(world.joint_angles(), world.body("tool").position)
 ```
 
-Установка: `pip install .` (нужны компилятор C++20 и CMake). Подробности — в [docs/PYTHON.md](docs/PYTHON.md).
+Кинематика и траектории (общая для любой цепочки суставов, не только этого манипулятора):
+
+```python
+chain = world.make_chain("tool")                      # цепочка от базы до инструмента
+ik = chain.solve_ik([0.9, 1.2, -0.4])                 # обратная кинематика (DLS), ik.q, ik.converged
+line = chain.plan_line(chain.coordinates(), [0.9, 1.2, -0.4], max_velocity=0.5, max_acceleration=2.0)
+log = rm.follow_trajectory(world, chain, line)        # прогон траектории через PID суставов
+```
+
+Установка: `pip install .` (нужны компилятор C++20 и CMake). Подробности — в [docs/PYTHON.md](docs/PYTHON.md), [docs/PLANNING.md](docs/PLANNING.md) и [docs/GYM.md](docs/GYM.md).
 
 ## Физика внутри
 
@@ -175,7 +184,7 @@ flowchart LR
 
 ## Проверено, а не «вроде работает»
 
-- **177 автоматических тестов** по областям: математика, контакты, цепочки, оболочки, CCD, суставы и ограничения, регуляторы, датчики, URDF, формат файлов, запись. Все проходят, в том числе под **UndefinedBehaviorSanitizer** (`make test-ubsan`).
+- **187 автоматических тестов** по областям: математика, контакты, цепочки, оболочки, CCD, суставы и ограничения, регуляторы, датчики, URDF, формат файлов, запись. Все проходят, в том числе под **UndefinedBehaviorSanitizer** (`make test-ubsan`).
 - **Автопроверка редактора** (`robotics_editor --smoke-test`) прогоняет настоящее окно: создание деталей, Undo/Redo, перенос, Control Lab, Reset, сохранение, датчики, гизмо, таймлайн, графики, библиотеку и GPU-рендер.
 - **Сверка с теорией и с MuJoCo:** массовые свойства оболочек против аналитических формул, GJK против перебора на случайных многогранниках, EPA против SAT на 400 парах, лидар против аналитической стены, перерегулирование PD против формулы. Шесть динамических сценариев сверены с аналитикой и **MuJoCo** (маятники, PD-сустав, манипулятор, трение, опрокидывание тела): [docs/VALIDATION.md](docs/VALIDATION.md).
 - **Детерминизм:** два независимых запуска серии экспериментов дают побайтово идентичные CSV.
@@ -207,7 +216,7 @@ flowchart TB
     subgraph apps[Приложения]
         E[Редактор macOS<br/>Cocoa + Metal]
         C[Консоль<br/>robotics_cli]
-        T[Тесты<br/>177]
+        T[Тесты<br/>187]
     end
     subgraph core[Ядро — C++20, только стандартная библиотека]
         P[physics<br/>тела · контакты · GJK/EPA · CCD]
@@ -231,6 +240,7 @@ src/sensors/        модели измерений, лучи
 src/io/             формат .robot, URDF, XML-парсер, STL/OBJ
 src/editing/        правки сборок, гизмо, библиотека деталей
 src/replay/         запись симуляции, каналы графиков
+src/kinematics/     цепочки суставов, прямая и обратная кинематика, траектории
 src/scenes/         встроенные примеры
 src/cli/            консольная программа
 src/mac/            конструктор macOS (Cocoa + Metal)
@@ -253,7 +263,8 @@ docs/               документация
 
 - [x] Python-привязки (`pip install .`, numpy, режим без окна) — [docs/PYTHON.md](docs/PYTHON.md)
 - [x] Интерфейс Gymnasium для обучения с подкреплением — [docs/GYM.md](docs/GYM.md)
-- [ ] Гравитационное и скоростное feedforward в регуляторах, обратная кинематика и планирование траекторий
+- [x] Прямая и обратная кинематика, траектории minimum-jerk и прямые в пространстве — [docs/PLANNING.md](docs/PLANNING.md)
+- [ ] Гравитационное и скоростное feedforward в регуляторах; планирование с обходом препятствий
 - [ ] Мост в ROS 2
 - [x] Сравнение с MuJoCo на одинаковых сценах — [docs/VALIDATION.md](docs/VALIDATION.md)
 - [ ] Рендер и редактор для Linux/Windows
@@ -268,6 +279,7 @@ docs/               документация
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | регуляторы, Control Lab, настройка |
 | [docs/SENSORS.md](docs/SENSORS.md) | датчики, шум, задержка |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: установка, дескрипторы, регуляторы, датчики |
+| [docs/PLANNING.md](docs/PLANNING.md) | кинематика, ОЗК, траектории: методы, ограничения, измерения |
 | [docs/GYM.md](docs/GYM.md) | окружение Gymnasium `ArmReach-v0`, пример обучения |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | сверка с аналитикой и MuJoCo: методика и результаты |
 | [docs/IMPORT.md](docs/IMPORT.md) | импорт URDF, STL, OBJ |
@@ -276,7 +288,7 @@ docs/               документация
 
 ```sh
 make                 # ядро, консоль, тесты, редактор (macOS) и build/RoboticsModel.app
-make test            # 177 тестов
+make test            # 187 тестов
 make test-ubsan      # то же под UndefinedBehaviorSanitizer
 make format          # clang-format
 ```

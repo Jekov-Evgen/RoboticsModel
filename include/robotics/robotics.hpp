@@ -10,6 +10,8 @@
 #include "robotics/editing/library.hpp"
 #include "robotics/io/robot_format.hpp"
 #include "robotics/joint.hpp"
+#include "robotics/kinematics/kinematics.hpp"
+#include "robotics/kinematics/trajectory.hpp"
 #include "robotics/math.hpp"
 #include "robotics/replay/channels.hpp"
 #include "robotics/replay/recording.hpp"

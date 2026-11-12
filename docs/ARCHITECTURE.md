@@ -73,6 +73,8 @@ include/robotics/            Публичный API ядра (без UI, без 
   editing/library.hpp        Библиотека: builtinLibrary, insertLibraryItem, extractAssembly, customLibraryItem
   replay/recording.hpp       Recording: лёгкие кадры 60 Гц + снимок World каждые 0.5 с, view, restore
   replay/channels.hpp        Каналы графиков: listChannels, channelValue, rebindChannel, CSV
+  kinematics/kinematics.hpp  Цепочка суставов от базы до инструмента: makeChain, FK, якобиан, ОЗК (DLS)
+  kinematics/trajectory.hpp  Траектории: minimum-jerk с ограничениями, по точкам, прямая в пространстве через ОЗК
   robotics.hpp               Зонтичный заголовок ядра (для привязок и утилит)
 src/physics/                 Динамика (библиотека robotics)
   world.cpp                  Конвейер шага (подшаги), добавление/удаление, проверка данных

@@ -9,7 +9,7 @@ Assemble a robot from parts, connect them with joints, drive them with motors, a
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=c%2B%2B&logoColor=white)](#build-and-test)
 [![Platform](https://img.shields.io/badge/editor-macOS%20(Metal)-000000?logo=apple&logoColor=white)](#quick-start)
 [![Core](https://img.shields.io/badge/core%20%2B%20CLI-portable%20C%2B%2B20-5C6BC0)](#architecture)
-[![Tests](https://img.shields.io/badge/tests-177%20passing-2EA44F)](#verified-not-just-it-seems-to-work)
+[![Tests](https://img.shields.io/badge/tests-187%20passing-2EA44F)](#verified-not-just-it-seems-to-work)
 [![Dependencies](https://img.shields.io/badge/third--party%20deps-0-2EA44F)](#build-and-test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
@@ -50,7 +50,7 @@ macOS with Command Line Tools (`clang++`, `make`). No third-party dependencies.
 git clone https://github.com/Jekov-Evgen/RoboticsModel.git
 cd RoboticsModel
 make            # core, CLI, tests and the editor
-make test       # 177 automated tests
+make test       # 187 automated tests
 open build/RoboticsModel.app
 ```
 
@@ -147,7 +147,16 @@ world.run(3.0)                                # simulated seconds
 print(world.joint_angles(), world.body("tool").position)
 ```
 
-Install with `pip install .` (needs a C++20 compiler and CMake). Details: [docs/PYTHON.md](docs/PYTHON.md) (Russian).
+Kinematics and trajectories (generic for any chain of joints, not just this arm):
+
+```python
+chain = world.make_chain("tool")                      # chain from the base to the tool
+ik = chain.solve_ik([0.9, 1.2, -0.4])                 # inverse kinematics (DLS): ik.q, ik.converged
+line = chain.plan_line(chain.coordinates(), [0.9, 1.2, -0.4], max_velocity=0.5, max_acceleration=2.0)
+log = rm.follow_trajectory(world, chain, line)        # run it through the PID joints
+```
+
+Install with `pip install .` (needs a C++20 compiler and CMake). Details: [docs/PYTHON.md](docs/PYTHON.md), [docs/PLANNING.md](docs/PLANNING.md), [docs/GYM.md](docs/GYM.md) (Russian).
 
 ## Physics inside
 
@@ -175,7 +184,7 @@ Details and formulas: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (Russian).
 
 ## Verified, not just "it seems to work"
 
-- **177 automated tests** by area: math, contacts, chains, hulls, CCD, joints and limits, controllers, sensors, URDF, file format, recording. All pass, including under **UndefinedBehaviorSanitizer** (`make test-ubsan`).
+- **187 automated tests** by area: math, contacts, chains, hulls, CCD, joints and limits, controllers, sensors, URDF, file format, recording. All pass, including under **UndefinedBehaviorSanitizer** (`make test-ubsan`).
 - **Editor self-check** (`robotics_editor --smoke-test`) drives the real window: part creation, undo/redo, move, Control Lab, reset, saving, sensors, gizmos, timeline, plots, library and GPU rendering.
 - **Checks against theory and MuJoCo:** hull mass properties against closed-form formulas, GJK against brute force on random polytopes, EPA against SAT on 400 box pairs, lidar against an analytic wall, PD overshoot against the formula. Six dynamic scenarios (pendulums, a PD joint, a manipulator, friction, a tumbling body) are checked against analytic solutions and **MuJoCo**: [docs/VALIDATION.md](docs/VALIDATION.md) (Russian).
 - **Determinism:** two independent runs of the experiment series produce byte-identical CSVs.
@@ -207,7 +216,7 @@ flowchart TB
     subgraph apps[Applications]
         E[macOS editor<br/>Cocoa + Metal]
         C[CLI<br/>robotics_cli]
-        T[Tests<br/>177]
+        T[Tests<br/>187]
     end
     subgraph core[Core — C++20, standard library only]
         P[physics<br/>bodies · contacts · GJK/EPA · CCD]
@@ -231,6 +240,7 @@ src/sensors/        measurement models, ray casting
 src/io/             .robot format, URDF, XML parser, STL/OBJ
 src/editing/        assembly edits, gizmos, part library
 src/replay/         simulation recording, plot channels
+src/kinematics/     joint chains, forward and inverse kinematics, trajectories
 src/scenes/         built-in examples
 src/cli/            command-line program
 src/mac/            macOS builder (Cocoa + Metal)
@@ -253,7 +263,8 @@ This is an **educational rigid-body simulator**, not a replacement for an indust
 
 - [x] Python bindings (`pip install .`, numpy, headless mode) — [docs/PYTHON.md](docs/PYTHON.md)
 - [x] Gymnasium interface for reinforcement learning — [docs/GYM.md](docs/GYM.md)
-- [ ] Gravity and velocity feedforward in the controllers, inverse kinematics and trajectory planning
+- [x] Forward and inverse kinematics, minimum-jerk trajectories and straight lines in space — [docs/PLANNING.md](docs/PLANNING.md)
+- [ ] Gravity and velocity feedforward in the controllers; planning around obstacles
 - [ ] ROS 2 bridge
 - [x] Comparison with MuJoCo on identical scenes — [docs/VALIDATION.md](docs/VALIDATION.md)
 - [ ] Renderer and editor for Linux/Windows
@@ -270,6 +281,7 @@ All documentation is currently in Russian.
 | [docs/CONTROLLERS.md](docs/CONTROLLERS.md) | controllers, Control Lab, tuning |
 | [docs/SENSORS.md](docs/SENSORS.md) | sensors, noise, latency |
 | [docs/PYTHON.md](docs/PYTHON.md) | Python API: install, handles, controllers, sensors |
+| [docs/PLANNING.md](docs/PLANNING.md) | kinematics, IK, trajectories: methods, limits, measurements |
 | [docs/GYM.md](docs/GYM.md) | Gymnasium environment `ArmReach-v0`, training example |
 | [docs/VALIDATION.md](docs/VALIDATION.md) | checks against analytic solutions and MuJoCo |
 | [docs/IMPORT.md](docs/IMPORT.md) | URDF, STL, OBJ import |
@@ -278,7 +290,7 @@ All documentation is currently in Russian.
 
 ```sh
 make                 # core, CLI, tests, editor (macOS) and build/RoboticsModel.app
-make test            # 177 tests
+make test            # 187 tests
 make test-ubsan      # the same under UndefinedBehaviorSanitizer
 make format          # clang-format
 ```

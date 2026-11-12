@@ -7,7 +7,7 @@ WARNINGS  = -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor -Wcast-align -W
 CXXFLAGS  = -std=c++20 -O2 $(WARNINGS)
 
 # Headless core library sources: every .cpp under these module directories.
-CORE_DIRS    = src/physics src/control src/io src/scenes src/sensors src/editing src/replay
+CORE_DIRS    = src/physics src/control src/io src/scenes src/sensors src/editing src/replay src/kinematics
 CORE         = $(foreach dir,$(CORE_DIRS),$(wildcard $(dir)/*.cpp))
 CORE_HEADERS = $(wildcard include/robotics/*.hpp include/robotics/*/*.hpp) \
                $(foreach dir,$(CORE_DIRS),$(wildcard $(dir)/*.hpp))

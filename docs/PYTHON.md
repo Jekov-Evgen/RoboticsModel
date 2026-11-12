@@ -8,7 +8,7 @@
 python -m venv .venv && . .venv/bin/activate
 pip install .            # из корня репозитория; нужны компилятор C++20 и CMake
 pip install -e ".[test]" # для разработки: тесты и editable-режим
-python -m pytest         # 35 тестов
+python -m pytest         # тесты Python-слоя
 ```
 
 Зависимости: `numpy` (всегда), `pybind11` и `scikit-build-core` (только при сборке). Сам движок остаётся без сторонних библиотек; привязки — отдельная цель CMake `robotics_py` (`-DROBOTICS_BUILD_PYTHON=ON`).
@@ -42,6 +42,8 @@ print(servo.angle)          # 1.0180 — тот же результат, что 
 | `Body` | `position`, `orientation` (w, x, y, z), `velocity`, `mass`, `friction`, `apply_force()`, `apply_torque()`, `local_to_world()` |
 | `Joint` | `angle`, `speed`, `effort`, `set_controller()`, `target`, `set_step()`, `set_sine()`, `set_limits()`, `motor_speed`, `reaction_force` |
 | `Sensor` | `value`, `truth`, `valid`, `fresh`, `channels`, `ray_ends`, настройка шума и задержки |
+| `Chain` | `world.make_chain(tip)`: `forward(q)`, `jacobian(q)`, `solve_ik(...)`, `plan_line(...)`, `coordinates()` |
+| `Trajectory` | `plan_point_to_point`, `plan_waypoints`, `Chain.plan_line`; `sample(t)`, `positions`, `velocities`, `times`; прогон — `follow_trajectory` |
 
 Векторы возвращаются как `numpy`-массивы, а на вход принимаются любые последовательности из чисел. Перечисления принимают строки без учёта регистра (`"hinge"`, `"PID"`, `"lidar2d"`), а неверное имя даёт `ValueError` со списком допустимых.
 
@@ -56,6 +58,8 @@ print(servo.angle)          # 1.0180 — тот же результат, что 
 **Снимки и воспроизводимость.** `world.clone()` — независимая копия всего состояния; `world.copy_state_from(snapshot)` возвращает мир к снимку (дескрипторы остаются валидными). Одинаковый ввод даёт побитово одинаковый результат.
 
 **Потоки.** `step`/`run` отпускают GIL, длинные прогоны не блокируют другие потоки Python.
+
+Кинематика и планирование — в [PLANNING.md](PLANNING.md), окружение для RL — в [GYM.md](GYM.md).
 
 ## Загрузка и сохранение
 
